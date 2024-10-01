@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -37,7 +36,42 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.items.push(value);
+        self.count += 1;
+        self.sift_up(self.count);
+
+    }
+
+    /// 上滤操作，用于维护堆的性质
+    fn sift_up(&mut self, mut index: usize) {
+        while index > 1 {
+            let parent_index = self.parent_idx(index);
+            if (self.comparator)(&self.items[index], &self.items[parent_index]){
+                self.items.swap(index, parent_index);
+                index = parent_index;
+            } else {
+                break;
+            }
+        }
+    }
+
+    /// 下滤操作，用于删除维护堆顶的性质
+    fn sift_down(&mut self, mut index: usize) {
+        let mut child_index = self.left_child_idx(index);
+        while child_index <= self.count {
+            let right_child_index = child_index + 1;
+            if right_child_index <= self.count && (self.comparator)(&self.items[right_child_index], &self.items[child_index]) {
+                child_index = right_child_index;
+            }
+
+            if (self.comparator)(&self.items[child_index], &self.items[index]) {
+                self.items.swap(index, child_index);
+                index = child_index;
+                child_index = self.left_child_idx(index);
+            } else {
+                break;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -56,10 +90,6 @@ where
         self.left_child_idx(idx) + 1
     }
 
-    fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
-    }
 }
 
 impl<T> Heap<T>
@@ -79,13 +109,23 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Clone + std::fmt::Debug,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+		// 弹出堆顶
+        if self.count == 0 {
+            return None;
+        }
+        self.items.swap(1, self.count);
+        let item = self.items[self.count].clone();
+        self.count -= 1;
+        self.sift_down(1);
+        self.items.pop();
+
+        return Some(item)
     }
 }
 
