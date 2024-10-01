@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -29,13 +28,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T : Ord + Clone + PartialEq> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: Ord + Clone + PartialEq> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,13 +68,51 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+	pub fn merge(mut list_a:LinkedList<T>,mut list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        if list_a.length == 0 {
+            return  list_b;
+        }else if list_b.length == 0 {
+            return list_a;
+        }else {
+            let mut dummy = LinkedList::new();
+            let mut node_a = list_a.start;
+            let mut node_b = list_b.start;
+            loop {
+                match (node_a, node_b) {
+                    (Some(a), Some(b)) => 
+                    {
+                        let a_ptr = a.as_ptr();
+                        let b_ptr = b.as_ptr();
+                        let a_val = unsafe{(*a_ptr).val.clone()};
+                        let b_val = unsafe{(*b_ptr).val.clone()};
+                        unsafe {
+                            if a_val < b_val {
+                                dummy.add(a_val);
+                                node_a = (*a_ptr).next;
+                            }else {
+                                dummy.add(b_val);
+                                node_b = (*b_ptr).next;
+                            }
+                        }
+                    }
+                    _ => {
+                        break;
+                    }
+                }
+            }
+            unsafe {
+            while let Some(a) = node_a {
+                let a_ptr = a.as_ptr();
+                dummy.add((*a_ptr).val.clone());
+                node_a = (*a_ptr).next;
+            }
+            while let Some(b) = node_b {
+                let b_ptr = b.as_ptr();
+                dummy.add((*b_ptr).val.clone());
+                node_b = (*b_ptr).next;
+            }}
+            return dummy;
         }
 	}
 }
@@ -167,6 +204,7 @@ mod tests {
 		let mut list_c = LinkedList::<i32>::merge(list_a,list_b);
 		println!("merged List is {}", list_c);
 		for i in 0..target_vec.len(){
+            println!("{}", i);
 			assert_eq!(target_vec[i],*list_c.get(i as i32).unwrap());
 		}
 	}
